@@ -1,0 +1,35 @@
+package com.example.al_pc.realtimegps.data.web;
+
+import android.util.Log;
+
+import java.util.concurrent.TimeUnit;
+
+import okhttp3.OkHttpClient;
+import okhttp3.logging.HttpLoggingInterceptor;
+import retrofit2.Retrofit;
+import retrofit2.converter.gson.GsonConverterFactory;
+
+class ApiClient {
+
+    Retrofit getClient() {
+
+        HttpLoggingInterceptor logging = new HttpLoggingInterceptor(message -> Log.e("Log", message));
+        logging.setLevel(HttpLoggingInterceptor.Level.BODY);
+
+        OkHttpClient httpClient = new OkHttpClient.Builder()
+                .addInterceptor(logging)
+                .connectTimeout(30, TimeUnit.SECONDS)
+                .writeTimeout(30, TimeUnit.SECONDS)
+                .readTimeout(30, TimeUnit.SECONDS)
+                .build();
+
+
+        return new Retrofit.Builder()
+                .baseUrl("http://192.168.0.180:8001")
+                .addConverterFactory(GsonConverterFactory.create())
+                .client(httpClient)
+                .build();
+
+    }
+
+}
