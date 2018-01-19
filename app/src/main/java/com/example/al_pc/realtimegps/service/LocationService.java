@@ -9,21 +9,18 @@ import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
+import android.os.Handler;
 import android.os.IBinder;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.widget.Toast;
 
-import com.example.al_pc.realtimegps.data.web.Api;
+import com.example.al_pc.realtimegps.aplication.data.local.db.DBRepo;
+import com.example.al_pc.realtimegps.aplication.data.web.Api;
 
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
-
-import okhttp3.ResponseBody;
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
+import java.util.Timer;
+import java.util.TimerTask;
 
 public class LocationService extends Service {
     public static final String BROADCAST_ACTION = "LocationService";
@@ -35,11 +32,13 @@ public class LocationService extends Service {
     public LocationManager locationManager;
     public MyLocationListener listener;
 
-    private List<HashMap<String, Object>> data;
-
     private Intent intent;
 
+    private Handler mHandler;
+    private Timer mTimer;
+
     private Api api;
+    private DBRepo db;
 
     @Override
     public void onCreate() {
@@ -49,8 +48,16 @@ public class LocationService extends Service {
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
         listener = new MyLocationListener();
 
-        data = new ArrayList<>();
+        mHandler = new Handler();
+        if (mTimer != null) {
+            mTimer.cancel();
+        } else {
+            mTimer = new Timer();
+        }
+
+        mTimer.scheduleAtFixedRate(new ServerUploadTimerTask(), 0, 60 * 1000);
         api = Api.getInstance();
+        db = DBRepo.getInstance(getApplicationContext());
 
     }
 
@@ -59,7 +66,7 @@ public class LocationService extends Service {
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
 
-            Log.e("No permision", "ok");
+            Log.e("LocationService", "No permission");
         }
 
         locationManager.requestLocationUpdates(LocationManager.NETWORK_PROVIDER, 4000, 0, listener);
@@ -74,7 +81,6 @@ public class LocationService extends Service {
         Log.e("", "onBind");
         return null;
     }
-
 
     @Override
     public void onDestroy() {
@@ -91,25 +97,14 @@ public class LocationService extends Service {
 
             String transportId = "GolfTest";
             HashMap<String, Object> currentData = new HashMap<>();
-            currentData.put("transportId", transportId);
-            currentData.put("speed", position.getSpeed());
-            currentData.put("latitude", position.getLatitude());
-            currentData.put("longitude", position.getLongitude());
-            currentData.put("date", position.getTime());
+            currentData.put(DBRepo.TRANSPORT_ID, transportId);
+            currentData.put(DBRepo.SPEED, position.getSpeed());
+            currentData.put(DBRepo.LATITUDE, position.getLatitude());
+            currentData.put(DBRepo.LONGITUDE, position.getLongitude());
+            currentData.put(DBRepo.DATE, position.getTime());
 
-            data.add(currentData);
 
-            api.getQuery().postLocation(data).enqueue(new Callback<ResponseBody>() {
-                @Override
-                public void onResponse(Call<ResponseBody> call, Response<ResponseBody> response) {
-
-                }
-
-                @Override
-                public void onFailure(Call<ResponseBody> call, Throwable t) {
-
-                }
-            });
+            db.addLocation(currentData).subscribe();
 
             Log.e("*******", "Location changed");
             Log.e("*******", "Latitude= " + position.getLatitude());
@@ -137,6 +132,30 @@ public class LocationService extends Service {
             Toast.makeText(getApplicationContext(), "Gps Disabled", Toast.LENGTH_SHORT).show();
         }
 
-
     }
+
+    class ServerUploadTimerTask extends TimerTask {
+
+        @Override
+        public void run() {
+            mHandler.post(
+
+                    () -> db.getLocationData()
+                            .subscribe(
+
+                                    data -> api.sendLocation(data)
+
+                                            .subscribe(
+
+                                                    () -> db.removeLocationData().subscribe(),
+                                                    Throwable::printStackTrace
+                                            ),
+
+                                    Throwable::printStackTrace
+
+                            )
+            );
+        }
+    }
+
 }

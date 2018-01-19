@@ -1,4 +1,4 @@
-package com.example.al_pc.realtimegps.data.web;
+package com.example.al_pc.realtimegps.aplication.data.web;
 
 import android.util.Log;
 
@@ -7,6 +7,7 @@ import java.util.concurrent.TimeUnit;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import retrofit2.Retrofit;
+import retrofit2.adapter.rxjava2.RxJava2CallAdapterFactory;
 import retrofit2.converter.gson.GsonConverterFactory;
 
 class ApiClient {
@@ -26,6 +27,7 @@ class ApiClient {
 
         return new Retrofit.Builder()
                 .baseUrl("http://192.168.0.180:8001")
+                .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(httpClient)
                 .build();

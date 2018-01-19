@@ -31,9 +31,24 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.1'
 
     //web
-    implementation 'com.squareup.okhttp3:okhttp:3.9.1'
-    implementation 'com.squareup.okhttp3:logging-interceptor:3.9.1'
-    implementation 'com.squareup.retrofit2:retrofit:2.3.0'
+
+    implementation group: 'com.squareup.retrofit2', name: 'retrofit', version: '2.3.0'
+    implementation group: 'com.squareup.retrofit2', name: 'adapter-rxjava2', version: '2.3.0'
+    implementation group: 'com.squareup.retrofit2', name: 'converter-jackson', version: '2.3.0'
+    implementation group: 'com.squareup.okhttp3', name: 'okhttp', version: '3.9.1'
+    implementation group: 'com.squareup.okhttp3', name: 'logging-interceptor', version: '3.9.1'
+
     implementation 'com.squareup.retrofit2:converter-gson:2.1.0'
+
+    //db
+    implementation "android.arch.persistence.room:runtime:1.0.0"
+    annotationProcessor "android.arch.persistence.room:compiler:1.0.0"
+    implementation "android.arch.persistence.room:rxjava2:1.0.0"
+
+    //rx
+    implementation 'io.reactivex.rxjava2:rxandroid:2.0.1'
+    implementation 'io.reactivex.rxjava2:rxjava:2.1.6'
+
+
 
 }

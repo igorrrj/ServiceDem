@@ -1,4 +1,4 @@
-package com.example.al_pc.realtimegps;
+package com.example.al_pc.realtimegps.util;
 
 import android.Manifest;
 import android.app.Activity;
