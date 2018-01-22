@@ -8,6 +8,7 @@ import io.reactivex.schedulers.Schedulers;
 
 public class Api {
 
+    private static final String BASE_URL = "https://pcounterdev.gemicle.com";
     private static Api api;
     private static ApiClient client;
     private ApiQuery query;
@@ -25,10 +26,10 @@ public class Api {
 
     }
 
-    public ApiQuery getQuery() {
+    private ApiQuery getQuery() {
 
         if (query == null) {
-            query = client.getClient().create(ApiQuery.class);
+            query = client.getClient(BASE_URL).create(ApiQuery.class);
         }
 
         return query;

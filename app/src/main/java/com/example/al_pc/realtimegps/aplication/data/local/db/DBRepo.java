@@ -55,10 +55,10 @@ public class DBRepo implements IDBRepo {
 
         return Single.fromCallable(() -> appDataBase.getGpsDao().getAllItems())
                 .map(
-                        gpsEntities ->{
+                        gpsEntities -> {
 
                             List<HashMap<String, Object>> list = new ArrayList<>();
-                            for (GpsEntity gpsEntity : gpsEntities){
+                            for (GpsEntity gpsEntity : gpsEntities) {
 
                                 list.add(transform(gpsEntity));
 
@@ -71,8 +71,10 @@ public class DBRepo implements IDBRepo {
 
     @Override
     public Single<Integer> getLocationDataSize() {
-        return Single.just(appDataBase.getGpsDao().getAllItems().size())
+
+        return Single.just(appDataBase.getGpsDao().countData())
                 .subscribeOn(Schedulers.io());
+
     }
 
     @Override

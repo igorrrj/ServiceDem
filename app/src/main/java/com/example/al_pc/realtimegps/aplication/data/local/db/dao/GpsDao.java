@@ -20,4 +20,7 @@ public interface GpsDao {
     @Query("DELETE FROM gps")
     void deleteAllItems();
 
+    @Query("SELECT COUNT(*) from gps")
+    int countData();
+
 }

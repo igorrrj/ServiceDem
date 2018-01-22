@@ -12,11 +12,15 @@ import com.example.al_pc.realtimegps.aplication.ui.main.anstraction.IMainActivit
 import com.example.al_pc.realtimegps.service.LocationService;
 import com.example.al_pc.realtimegps.util.PermissionUtil;
 
+import io.reactivex.disposables.Disposable;
+
 public class MainPresenter {
 
     private IMainActivity view;
     private Context context;
     private DBRepo db;
+    private Disposable dbDisposable;
+
     private BroadcastReceiver broadcastReceiver = new BroadcastReceiver() {
 
         @Override
@@ -28,7 +32,9 @@ public class MainPresenter {
                 Double lat = bundle.getDouble(LocationService.KEY_LAT);
                 Double lng = bundle.getDouble(LocationService.KEY_LNG);
 
-                view.onLocationChanged(lat, lng);
+//                getDataSize();
+
+                view.onLocationChanged(lat, lng).subscribe();
             }
 
         }
@@ -36,12 +42,40 @@ public class MainPresenter {
     };
 
     public MainPresenter(IMainActivity view, Activity context) {
+
         this.view = view;
         this.context = context;
+
+        db = DBRepo.getInstance(context);
+
+//        dbDisposable = getDataSize();
+//
+//        db.getLocationData()
+//                .subscribe(
+//                        (hashMaps, throwable) -> {}
+//                );
+//
+//        db.getLocationDataSize()
+//               .subscribe(
+//                       (integer, throwable) -> {}
+//               );
 
         //check permissions
         PermissionUtil.isLocationGranted(context);
         PermissionUtil.isNetworkGranted(context);
+
+    }
+
+    private Disposable getDataSize() {
+
+       return db.getLocationDataSize()
+                .subscribe(
+
+                        size -> view.onLocationDataSizeChanged(size).subscribe(),
+                        Throwable::printStackTrace
+
+                );
+
     }
 
     public void subscribeLocationUpdates() {
@@ -49,7 +83,12 @@ public class MainPresenter {
     }
 
     public void unsubscribeLocationUpdates() {
+
         context.unregisterReceiver(broadcastReceiver);
+
+        if (dbDisposable != null && !dbDisposable.isDisposed())
+            dbDisposable.dispose();
+
     }
 
 }

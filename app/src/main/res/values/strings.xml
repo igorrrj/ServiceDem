@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">RealtimeGps</string>
+    <string name="location_data_size">Location data size:</string>
+    <string name="google_maps_api_key">AIzaSyB9qugF7GAqkwsfeSMlNJ47pvuOIHVpir0</string>
 </resources>

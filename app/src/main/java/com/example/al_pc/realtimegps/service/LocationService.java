@@ -11,6 +11,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.support.v4.app.ActivityCompat;
 import android.util.Log;
 import android.widget.Toast;
@@ -40,6 +41,12 @@ public class LocationService extends Service {
     private Api api;
     private DBRepo db;
 
+    public static void toast(final Context context, final String msg) {
+        if (context != null && msg != null) {
+            new Handler(Looper.getMainLooper()).post(() -> Toast.makeText(context, msg, Toast.LENGTH_SHORT).show());
+        }
+    }
+
     @Override
     public void onCreate() {
         super.onCreate();
@@ -55,7 +62,7 @@ public class LocationService extends Service {
             mTimer = new Timer();
         }
 
-        mTimer.scheduleAtFixedRate(new ServerUploadTimerTask(), 0, 60 * 1000);
+        mTimer.scheduleAtFixedRate(new ServerUploadTimerTask(), 60 * 1000, 60 * 1000);
         api = Api.getInstance();
         db = DBRepo.getInstance(getApplicationContext());
 
@@ -103,7 +110,6 @@ public class LocationService extends Service {
             currentData.put(DBRepo.LONGITUDE, position.getLongitude());
             currentData.put(DBRepo.DATE, position.getTime());
 
-
             db.addLocation(currentData).subscribe();
 
             Log.e("*******", "Location changed");
@@ -113,6 +119,7 @@ public class LocationService extends Service {
             intent.putExtra(KEY_LAT, position.getLatitude());
             intent.putExtra(KEY_LNG, position.getLongitude());
             intent.putExtra(KEY_PROVIDER, position.getProvider());
+
             sendBroadcast(intent);
 
         }
@@ -147,8 +154,18 @@ public class LocationService extends Service {
 
                                             .subscribe(
 
-                                                    () -> db.removeLocationData().subscribe(),
-                                                    Throwable::printStackTrace
+                                                    () -> {
+
+                                                        db.removeLocationData().subscribe();
+                                                        toast(getApplicationContext(), "send data to server successfully");
+
+                                                    },
+                                                    throwable -> {
+
+                                                        toast(getApplicationContext(), "send data to server error");
+                                                        throwable.printStackTrace();
+
+                                                    }
                                             ),
 
                                     Throwable::printStackTrace

@@ -12,7 +12,7 @@ import retrofit2.converter.gson.GsonConverterFactory;
 
 class ApiClient {
 
-    Retrofit getClient() {
+    Retrofit getClient(String url) {
 
         HttpLoggingInterceptor logging = new HttpLoggingInterceptor(message -> Log.e("Log", message));
         logging.setLevel(HttpLoggingInterceptor.Level.BODY);
@@ -26,7 +26,7 @@ class ApiClient {
 
 
         return new Retrofit.Builder()
-                .baseUrl("http://192.168.0.180:8001")
+                .baseUrl(url)
                 .addCallAdapterFactory(RxJava2CallAdapterFactory.create())
                 .addConverterFactory(GsonConverterFactory.create())
                 .client(httpClient)
