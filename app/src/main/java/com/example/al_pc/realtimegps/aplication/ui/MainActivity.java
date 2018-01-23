@@ -1,6 +1,8 @@
 package com.example.al_pc.realtimegps.aplication.ui;
 
 import android.annotation.SuppressLint;
+import android.app.ActivityManager;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
@@ -13,7 +15,7 @@ import android.widget.Toast;
 import com.example.al_pc.realtimegps.R;
 import com.example.al_pc.realtimegps.aplication.ui.main.MainPresenter;
 import com.example.al_pc.realtimegps.aplication.ui.main.anstraction.IMainActivity;
-import com.example.al_pc.realtimegps.service.LocationService;
+import com.example.al_pc.realtimegps.service.LocationServiceNew;
 import com.example.al_pc.realtimegps.util.PermissionUtil;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -41,6 +43,7 @@ public class MainActivity extends AppCompatActivity implements IMainActivity, On
     private MainPresenter presenter;
 
     private PolylineOptions polylineOptions;
+    private boolean firstTime;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,25 +56,45 @@ public class MainActivity extends AppCompatActivity implements IMainActivity, On
 
         start.setOnClickListener(v -> {
 
-            startService(new Intent(MainActivity.this, LocationService.class));
-            Toast.makeText(this, "startService", Toast.LENGTH_SHORT).show();
+            if (!isServiseRunning(LocationServiceNew.class)) {
 
-            if(mGoogleMap!=null){
-                mGoogleMap.clear();
+                startService(new Intent(MainActivity.this, LocationServiceNew.class));
+                Toast.makeText(this, "startService", Toast.LENGTH_SHORT).show();
+
+                if (mGoogleMap != null) {
+                    mGoogleMap.clear();
+                }
+                polylineOptions = new PolylineOptions();
+                polylineOptions.color(Color.BLACK);
+                polylineOptions.width(12);
+
             }
-            polylineOptions = new PolylineOptions();
-            polylineOptions.color(Color.BLACK);
-            polylineOptions.width(12);
 
         });
 
         stop.setOnClickListener(v -> {
 
-            stopService(new Intent(MainActivity.this, LocationService.class));
+            stopService(new Intent(MainActivity.this, LocationServiceNew.class));
             Toast.makeText(this, "stopService", Toast.LENGTH_SHORT).show();
 
         });
 
+        firstTime = true;
+
+    }
+
+    private Boolean isServiseRunning(Class serviceClass) {
+
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+
+        for (ActivityManager.RunningServiceInfo serviceInfo : manager.getRunningServices(Integer.MAX_VALUE)) {
+
+            if (serviceClass.getName().equals(serviceInfo.service.getClassName()))
+                return true;
+
+        }
+
+        return false;
     }
 
     @Override
@@ -80,7 +103,6 @@ public class MainActivity extends AppCompatActivity implements IMainActivity, On
         mMapView.onResume();
 
         presenter = new MainPresenter(this, this);
-
         presenter.subscribeLocationUpdates();
     }
 
@@ -88,7 +110,6 @@ public class MainActivity extends AppCompatActivity implements IMainActivity, On
     protected void onPause() {
         super.onPause();
         mMapView.onPause();
-
         presenter.unsubscribeLocationUpdates();
     }
 
@@ -133,10 +154,17 @@ public class MainActivity extends AppCompatActivity implements IMainActivity, On
         return Completable.fromAction(
 
                 () -> {
+                    LatLng latLng = new LatLng(lat, lng);
+
+                    if (firstTime) {
+                        mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 20));
+                    } else {
+                        mGoogleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+                    }
+
+                    firstTime = false;
 
                     Toast.makeText(this, "lat = " + lat + "\n lng = " + lng, Toast.LENGTH_SHORT).show();
-                    LatLng latLng = new LatLng(lat, lng);
-                    mGoogleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(latLng, 20));
 
                     polylineOptions.add(latLng);
                     mGoogleMap.addPolyline(polylineOptions);

@@ -29,6 +29,8 @@
 
         <service android:name=".service.LocationService"/>
 
+        <service android:name=".service.LocationServiceNew"/>
+
     </application>
 
 </manifest>

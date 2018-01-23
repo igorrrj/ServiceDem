@@ -10,6 +10,7 @@ import android.os.Bundle;
 import com.example.al_pc.realtimegps.aplication.data.local.db.DBRepo;
 import com.example.al_pc.realtimegps.aplication.ui.main.anstraction.IMainActivity;
 import com.example.al_pc.realtimegps.service.LocationService;
+import com.example.al_pc.realtimegps.service.LocationServiceNew;
 import com.example.al_pc.realtimegps.util.PermissionUtil;
 
 import io.reactivex.disposables.Disposable;
@@ -29,8 +30,8 @@ public class MainPresenter {
 
             if (bundle != null) {
 
-                Double lat = bundle.getDouble(LocationService.KEY_LAT);
-                Double lng = bundle.getDouble(LocationService.KEY_LNG);
+                Double lat = bundle.getDouble(LocationServiceNew.KEY_LAT);
+                Double lng = bundle.getDouble(LocationServiceNew.KEY_LNG);
 
 //                getDataSize();
 
@@ -79,7 +80,7 @@ public class MainPresenter {
     }
 
     public void subscribeLocationUpdates() {
-        context.registerReceiver(broadcastReceiver, new IntentFilter(LocationService.BROADCAST_ACTION));
+        context.registerReceiver(broadcastReceiver, new IntentFilter(LocationServiceNew.BROADCAST_ACTION));
     }
 
     public void unsubscribeLocationUpdates() {
